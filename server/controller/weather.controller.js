@@ -8,6 +8,7 @@ exports.getWeathersURL = async () => {
 
     let topURL;
     let lastURL;
+    let lastUpdate = [];
     const weatherLgn = "&units=metric&lang=pt"
     const weatherApi = "&APPID=" + "bced2d2f8445517b5b82cc8caae06301";
 
@@ -18,7 +19,7 @@ exports.getWeathersURL = async () => {
                 {
                     order: [
                         ['searched', 'DESC'],
-                        ['last_update', 'DESC']
+                        ['last_update', 'ASC']
                     ],
                     limit: 5
                 }
@@ -39,7 +40,6 @@ exports.getWeathersURL = async () => {
             topURL += ',';
     });
     topURL += weatherLgn + weatherApi;
-    // console.log(topURL);
 
 
     //get from database the last searched weathers
@@ -64,16 +64,15 @@ exports.getWeathersURL = async () => {
     //make last searched cities URL
     lastURL = "http://api.openweathermap.org/data/2.5/group?id=";
     lastFive.forEach((city, i) => {
+        lastUpdate.push(new Date(city.last_update));
         lastURL += city.id;
         if ((lastFive.length - 1) != i)
             lastURL += ',';
     });
     lastURL += weatherLgn + weatherApi;
-    // console.log(lastURL);
-
 
     return new Promise((resolve) => {
-        resolve({ 'top': topURL, 'last': lastURL });
+        resolve({ 'top': topURL, 'last': lastURL, 'lastUpdate': lastUpdate });
     })
 }
 
