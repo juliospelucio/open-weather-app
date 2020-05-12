@@ -6,10 +6,10 @@ var lastWeather = [];
  */
 function getWeather() {
     var weatherUrl = "http://api.openweathermap.org/data/2.5/weather?q=";
-    var weatherLgn = "&units=metric&lang=pt"
+    var weatherLgn = "&units=metric&lang=pt";
     var weatherApi = "&APPID=" + "bced2d2f8445517b5b82cc8caae06301";
     var city = $('#city-input').val();
-
+    
     var url = weatherUrl + city + weatherLgn + weatherApi;
 
     $.get(url, function (data) {
@@ -27,17 +27,17 @@ function getWeather() {
  * @param data data request from the open weather API.
  */
 function getData(data) {
-    return '<h3 id="city" class="mt-2">' + data.name + ', ' + data.sys.country + '</h3>'
+    return '</br><h3 id="city" class="mt-2">' + data.name + ', ' + data.sys.country + '</h3>'
         + '<span id="time">' + dateFormat() + ' ' + data.weather[0].description + '</span >'
         + '<img src="http://openweathermap.org/img/w/' + data.weather[0].icon + '.png" id="icon" class="ml-5" width="70px" height="70px">'
         + '<h2 id="temp">' + Math.floor(data.main.temp * 10) / 10 + '&deg;C</h2>';
 };
 
 /**
- * Returns a 
+ * Returns a resolved array with last searched weathers or rejected empty array
  * @param url formatted string for API request
  */
-function getTop(url) {
+function getTopSearched(url) {
     return new Promise(
         (resolve, reject) => {
             $.get(url, function (data) {
@@ -52,7 +52,7 @@ function getTop(url) {
 }
 
 /**
- * 
+ * Returns a resolved array with last searched weathers or rejected empty array
  * @param url formatted string for API request
  */
 function getlastSearched(url) {
@@ -69,12 +69,16 @@ function getlastSearched(url) {
     )
 }
 
+/**
+ * Fill both modal and cointainer for top searched weathers and last searched weathers
+ * @param url obj containing URLs to API call: last searched weathers and top searched weathers, and dates of last searched weathers 
+ */
 async function weatherHandler(url) {
     var lastUpdate = [];
     var topList = '';
     var lastList = '';
 
-    await getTop(url.top);
+    await getTopSearched(url.top);
     await getlastSearched(url.last);
 
     url.lastUpdate.forEach(element => {
@@ -82,19 +86,23 @@ async function weatherHandler(url) {
     });
 
     for (let i = 0; i < topWeather.list.length; i++) {
-        topList += `<li class="list-inline-item border border-info px-2" id="${topWeather.list[i].id}">${topWeather.list[i].name}</li>`
+        topList += `<button type="button" class="btn btn-outline-secondary mx-1" id="${topWeather.list[i].id}">${topWeather.list[i].name}</button>`
         lastList += `<li class="list-group-item" id="${lastWeather.list[i].id}">${lastWeather.list[i].name}, ${Math.floor(lastWeather.list[i].main.temp * 10) / 10}°C ${lastWeather.list[i].weather[0].description} <small>(há ${timeSince(lastUpdate[i])})</small></li>`
     }
 
     $('.list-inline').html(topList);
     $('.list-group').html(lastList);
 
-    $('.list-inline-item').click(async function () {
+    $('.btn').click(async function () {
         var id = $(this).attr('id');
         fillModal(id)
     });
 }
 
+/**
+ * Fill modal with content based on the id of a selected element on the app page 
+ * @param id of the selected element to fill with content on modal 
+ */
 async function fillModal(id) {
     var weather;
 
@@ -133,7 +141,7 @@ function dateFormat() {
 };
 
 /**
- * 
+ * Get a date in milliseconds and returns a string with the difference when it was last query
  * @param time time in milliseconds
  */
 function timeSince(time) {
@@ -143,25 +151,25 @@ function timeSince(time) {
     var interval = Math.floor(seconds / 31536000);
 
     if (interval > 1) {
-        return interval + " anos";
+        return interval <= 1 ? interval + " ano" : interval + " anos";
     }
     interval = Math.floor(seconds / 2592000);
     if (interval > 1) {
-        return interval + " meses";
+        return interval <= 1 ? interval + " mes" : interval + " meses";
     }
     interval = Math.floor(seconds / 86400);
     if (interval > 1) {
-        return interval + " dias";
+        return interval <= 1 ? interval + " dia" : interval + " dias";
     }
     interval = Math.floor(seconds / 3600);
     if (interval > 1) {
-        return interval + " horas";
+        return interval <= 1 ? interval + " hora" : interval + " horas";
     }
     interval = Math.floor(seconds / 60);
     if (interval > 1) {
-        return interval + " minutos";
+        return interval <= 1 ? interval + " minuto" : interval + " minutos";
     }
-    return Math.floor(seconds) + " segundos";
+    return Math.floor(seconds) <= 1 ? Math.floor(seconds) + " segundo" : Math.floor(seconds) + " segundos";
 }
 
 $(document).ready(function () {
